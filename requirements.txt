@@ -1,0 +1,5 @@
+requests
+beautifulsoup4
+spotdl
+yt-dlp
+rich

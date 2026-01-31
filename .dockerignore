@@ -1,0 +1,7 @@
+__pycache__
+*.pyc
+MusicOutput/
+downloads/
+.env
+.git
+.gitignore

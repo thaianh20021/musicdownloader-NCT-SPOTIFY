@@ -1,0 +1,4 @@
+# Dán danh sách link vào đây, mỗi link một dòng.
+# Ví dụ:
+# https://open.spotify.com/track/xxxx
+# https://www.nhaccuatui.com/bai-hat/yyyy.html
