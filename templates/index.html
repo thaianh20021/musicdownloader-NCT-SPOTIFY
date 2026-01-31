@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity Music Downloader</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header-controls">
+            <button class="icon-btn" onclick="toggleModal()" title="Hướng dẫn sử dụng">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+            </button>
+        </div>
+        <h1 class="glow">Music Downloader</h1>
+        <p class="subtitle">Hỗ trợ Spotify & Nhaccuatui (Bài hát, Album, Playlist)</p>
+
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="Dán link bài hát hoặc playlist vào đây...">
+            <button onclick="startDownload()" id="downloadBtn">Tải Ngay</button>
+        </div>
+
+        <div class="console-window" id="console">
+            <div class="log-entry dim">Sẵn sàng chờ lệnh...</div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="toggleModal()">&times;</span>
+            <h2>Hướng dẫn sử dụng</h2>
+            <div class="readme-content">
+                <p><strong>Hỗ trợ:</strong></p>
+                <ul>
+                    <li>Spotify (Bài hát, Album, Playlist)</li>
+                    <li>Nhaccuatui (Bài hát, Album, Playlist, Top 100)</li>
+                </ul>
+                <p><strong>Lưu ý:</strong></p>
+                <ul>
+                    <li>Nhạc tải về nằm trong thư mục <code>MusicOutput</code> của server.</li>
+                    <li>Tool sử dụng cơ chế tìm kiếm YouTube cho Spotify, nên đôi khi bản phối có thể khác bản gốc.</li>
+                </ul>
+                <p><em>Developed by Antigravity</em></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var socket = io();
+        var consoleDiv = document.getElementById('console');
+        var btn = document.getElementById('downloadBtn');
+        var input = document.getElementById('urlInput');
+
+        socket.on('connect', function () {
+            log('Đã kết nối tới server.', 'green');
+        });
+
+        socket.on('log', function (data) {
+            log(data.msg, data.style);
+        });
+
+        socket.on('done', function (data) {
+            btn.disabled = false;
+            btn.innerText = "Tải tiếp";
+            btn.classList.remove('loading');
+        });
+
+        function startDownload() {
+            var url = input.value.trim();
+            if (!url) return;
+
+            btn.disabled = true;
+            btn.innerText = "Đang xử lý...";
+            btn.classList.add('loading');
+
+            // Clear console except first line or just append separator
+            consoleDiv.innerHTML = '<div class="log-entry dim">--- Bắt đầu phiên mới ---</div>';
+
+            socket.emit('start_download', { url: url });
+        }
+
+        function toggleModal() {
+            var modal = document.getElementById("infoModal");
+            if (modal.style.display === "block") {
+                modal.style.display = "none";
+            } else {
+                modal.style.display = "block";
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            var modal = document.getElementById("infoModal");
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        function log(msg, style) {
+            var el = document.createElement('div');
+            el.className = 'log-entry';
+
+            // Simple mapping from rich styles to css classes
+            if (style && style.includes('red')) el.classList.add('text-red');
+            if (style && style.includes('green')) el.classList.add('text-green');
+            if (style && style.includes('yellow')) el.classList.add('text-yellow');
+            if (style && style.includes('cyan')) el.classList.add('text-cyan');
+            if (style && style.includes('dim')) el.classList.add('text-dim');
+            if (style && style.includes('bold')) el.style.fontWeight = 'bold';
+
+            el.innerText = "> " + msg;
+            consoleDiv.appendChild(el);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        // Enter key to submit
+        input.addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                startDownload();
+            }
+        });
+    </script>
+</body>
+
+</html>
